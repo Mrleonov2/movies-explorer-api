@@ -1,16 +1,13 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const Movie = require('../models/movie');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-const ForbiddenError = require('../errors/ForbiddenError');
 
 const saltRounds = 10;
 const MONGO_DUPLICATE_KEY_CODE = 11000;
 const { NODE_ENV, JWT_SECRET } = process.env;
-
 const createUser = (req, res, next) => {
   const {
     name, email, password,
@@ -77,89 +74,17 @@ const login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'secret-code', {
-        expiresIn: '1d',
+        expiresIn: '7d',
       });
       res.cookie('jwt', token, {
         maxAge: 3600000 * 24 * 1,
-        // httpOnly: true,
-        // sameSite: 'none',
-        // secure: true,
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
       });
       res.send({ token });
     })
     .catch(next);
-};
-const saveMovie = (req, res, next) => {
-  const {
-    country,
-    director,
-    duration,
-    year,
-    description,
-    image,
-    trailer,
-    nameRU,
-    nameEN,
-    thumbnail,
-    movieId,
-  } = req.body;
-  Movie.create({
-    country,
-    director,
-    duration,
-    year,
-    description,
-    image,
-    trailer,
-    thumbnail,
-    nameRU,
-    nameEN,
-    movieId,
-    owner: req.user._id,
-  })
-    .then((card) => {
-      res.send(card);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return next(
-          new BadRequestError(
-            'Переданы некорректные данные',
-          ),
-        );
-      }
-      return next(err);
-    });
-};
-const deleteMovie = (req, res, next) => {
-  const deleteCardHandler = () => {
-    Movie.findByIdAndRemove(req.params.MovieId)
-      .then(() => {
-        res.send({ message: 'Удаление завершено' });
-      })
-      .catch((err) => {
-        if (err.kind === 'ObjectId') {
-          return next(new BadRequestError('Переданный _id некорректный'));
-        }
-        return next(err);
-      });
-  };
-  Movie.findById(req.params.MovieId)
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Карточка с указанным _id не найдена'));
-      }
-      if (req.user._id !== card.owner.toString()) {
-        return next(new ForbiddenError('Нет прав на удаление'));
-      }
-      return deleteCardHandler();
-    })
-    .catch((err) => {
-      if (err.kind === 'ObjectId') {
-        return next(new BadRequestError('Переданный _id некорректный'));
-      }
-      return next(err);
-    });
 };
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
@@ -178,29 +103,9 @@ const getCurrentUser = (req, res, next) => {
       return next(err);
     });
 };
-const getSavedMovies = (req, res, next) => {
-  Movie.find({ owner: req.user._id })
-    .then((user) => {
-      if (!user) {
-        return next(
-          new NotFoundError('Сохраненне фильмы не найдены'),
-        );
-      }
-      return res.send(user);
-    })
-    .catch((err) => {
-      if (err.kind === 'ObjectId') {
-        return next(new BadRequestError('Переданный _id некорректный'));
-      }
-      return next(err);
-    });
-};
 module.exports = {
-  getSavedMovies,
-  getCurrentUser,
-  deleteMovie,
-  updateUser,
-  saveMovie,
-  login,
   createUser,
+  updateUser,
+  login,
+  getCurrentUser,
 };
