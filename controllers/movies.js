@@ -11,7 +11,7 @@ const saveMovie = (req, res, next) => {
     year,
     description,
     image,
-    trailer,
+    trailerLink,
     thumbnail,
     nameRU,
     nameEN,
@@ -24,12 +24,12 @@ const saveMovie = (req, res, next) => {
     year,
     description,
     image,
-    trailer,
+    trailerLink,
     thumbnail,
     nameRU,
     nameEN,
     movieId,
-    owner: { _id: req.user._id },
+    owner: req.user._id,
   }).then((movieCard) => {
     res.send(movieCard);
   }).catch((err) => {
