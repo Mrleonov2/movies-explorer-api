@@ -8,6 +8,8 @@ const NotFoundError = require('../errors/NotFoundError');
 const saltRounds = 10;
 const MONGO_DUPLICATE_KEY_CODE = 11000;
 const { NODE_ENV, JWT_SECRET } = process.env;
+const { JWT_DEV } = require('../utils/constant');
+
 const createUser = (req, res, next) => {
   const {
     name, email, password,
@@ -48,21 +50,25 @@ const updateUser = (req, res, next) => {
     id,
     { name, email },
     { new: true, runValidators: true },
-  )
-    .then((user) => {
-      if (!user) {
-        return next(
-          new NotFoundError('Пользователь с указанным _id не найден'),
-        );
-      }
-      return res.send(user);
-    })
+  ).then((user) => {
+    if (!user) {
+      return next(
+        new NotFoundError('Пользователь с указанным _id не найден'),
+      );
+    }
+    return res.send(user);
+  })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(
           new BadRequestError(
             'Переданы некорректные данные при обновлении профиля',
           ),
+        );
+      }
+      if (err.code === MONGO_DUPLICATE_KEY_CODE) {
+        return next(
+          new ConflictError('Данный email уже занят'),
         );
       }
       return next(err);
@@ -73,7 +79,7 @@ const login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'secret-code', {
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : JWT_DEV, {
         expiresIn: '7d',
       });
       res.cookie('jwt', token, {
@@ -96,12 +102,7 @@ const getCurrentUser = (req, res, next) => {
       }
       return res.send(user);
     })
-    .catch((err) => {
-      if (err.kind === 'ObjectId') {
-        return next(new BadRequestError('Переданный _id некорректный'));
-      }
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 module.exports = {
   createUser,

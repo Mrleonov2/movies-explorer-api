@@ -45,7 +45,7 @@ const saveMovie = (req, res, next) => {
 };
 const deleteMovie = (req, res, next) => {
   const deleteCardHandler = () => {
-    Movie.findByIdAndRemove(req.params.MovieId)
+    Movie.findByIdAndRemove(req.params.movieId)
       .then(() => {
         res.send({ message: 'Удаление завершено' });
       })
@@ -56,7 +56,7 @@ const deleteMovie = (req, res, next) => {
         return next(err);
       });
   };
-  Movie.findById(req.params.MovieId)
+  Movie.findById(req.params.movieId)
     .then((movieCard) => {
       if (!movieCard) {
         return next(new NotFoundError('Карточка с указанным _id не найдена'));

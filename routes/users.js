@@ -12,4 +12,5 @@ router.patch('/users/me', celebrate({
     email: Joi.string().required().min(2),
   }),
 }), updateUser);
+
 module.exports = router;
