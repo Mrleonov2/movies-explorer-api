@@ -9,12 +9,10 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const corsOption = require('./utils/corsOption');
-const auth = require('./middlewares/auth');
-const NotFoundError = require('./errors/NotFoundError');
 const errHandler = require('./middlewares/errHandler');
-
+const routes = require('./routes/routes');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const apiLimiter = require('./utils/rateLimitOpt');
+const apiLimiter = require('./middlewares/rateLimitOpt');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -30,20 +28,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(requestLogger);
-
-app.use(require('./routes/authRoutes'));
-
-app.use(auth);
-app.use(require('./routes/movies'));
-
-app.use(require('./routes/users'));
-
-app.use('/*', (req, res, next) => {
-  next(new NotFoundError('Страница по указанному URL не найдена'));
-});
+app.use(apiLimiter);
+app.use(routes);
 app.use(errorLogger);
 app.use(errors());
-app.use(apiLimiter);
 app.use(errHandler);
 app.listen(PORT, () => {
   console.log(`Port:${PORT}`);

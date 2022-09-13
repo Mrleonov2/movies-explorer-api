@@ -1,9 +1,12 @@
+const routes = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
-
-const app = require('express').Router();
+const auth = require('../middlewares/auth');
+const usersRouter = require('./users');
+const moviesRouter = require('./movies');
+const NotFoundError = require('../errors/NotFoundError');
 const { createUser, login } = require('../controllers/users');
 
-app.post(
+routes.post(
   '/signup',
   celebrate({
     body: Joi.object().keys({
@@ -14,7 +17,7 @@ app.post(
   }),
   createUser,
 );
-app.post(
+routes.post(
   '/signin',
   celebrate({
     body: Joi.object().keys({
@@ -24,7 +27,12 @@ app.post(
   }),
   login,
 );
-app.get('/signout', (_, res) => {
+routes.get('/signout', (_, res) => {
   res.status(200).clearCookie('jwt').send({ message: 'Выход' });
 });
-module.exports = app;
+routes.use(auth, usersRouter);
+routes.use(auth, moviesRouter);
+routes.use('*', auth, (req, res, next) => {
+  next(new NotFoundError('Страница по указанному URL не найдена'));
+});
+module.exports = routes;
