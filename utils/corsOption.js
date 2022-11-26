@@ -4,7 +4,7 @@ const corsOption = {
     'https://api.explorer.leonov.nomoredomains.club',
     'http://explorer.leonov.nomoredomains.club',
     'https://explorer.leonov.nomoredomains.club',
-    'http:/localhost:3000',
+    'http://localhost:3000',
     'https://api.explorer.leonov.nomoredomains.club/signup',
     'https://api.explorer.leonov.nomoredomains.club/signin',
   ],
