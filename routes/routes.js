@@ -30,9 +30,10 @@ routes.post(
 routes.get('/signout', (_, res) => {
   res.status(200).clearCookie('jwt').send({ message: 'Выход' });
 });
-routes.use(auth, usersRouter);
-routes.use(auth, moviesRouter);
-routes.use('*', auth, (req, res, next) => {
+routes.use(auth);
+routes.use(usersRouter);
+routes.use(moviesRouter);
+routes.use('/*', (req, res, next) => {
   next(new NotFoundError('Страница по указанному URL не найдена'));
 });
 module.exports = routes;
