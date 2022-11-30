@@ -30,8 +30,6 @@ app.use(cookieParser());
 app.use(requestLogger);
 app.use(apiLimiter);
 app.use(routes);
-app.get('/signout', (req, res) => { res.status(200).clearCookie('jwt').send({ message: 'Выход' }); });
-
 app.use(errorLogger);
 app.use(errors());
 app.use(errHandler);
