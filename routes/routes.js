@@ -27,8 +27,12 @@ routes.post(
   }),
   login,
 );
-routes.post('/signout', (req, res) => {
-  res.status(200).clearCookie('jwt').send({ message: 'Выход' });
+routes.get('/signout', (req, res) => {
+  res.status(200).clearCookie('jwt', {
+    httpOnly: false,
+    sameSite: 'none',
+    secure: true,
+  }).send({ message: 'Выход' });
 });
 routes.use(auth, usersRouter);
 routes.use(auth, moviesRouter);
