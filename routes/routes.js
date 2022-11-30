@@ -27,12 +27,12 @@ routes.post(
   }),
   login,
 );
-
-routes.use(auth, usersRouter);
-routes.use(auth, moviesRouter);
-routes.get('/signout', (req, res) => {
+routes.post('/signout', (req, res) => {
   res.status(200).clearCookie('jwt').send({ message: 'Выход' });
 });
+routes.use(auth, usersRouter);
+routes.use(auth, moviesRouter);
+
 routes.use('/*', (req, res, next) => {
   next(new NotFoundError('Страница по указанному URL не найдена'));
 });
